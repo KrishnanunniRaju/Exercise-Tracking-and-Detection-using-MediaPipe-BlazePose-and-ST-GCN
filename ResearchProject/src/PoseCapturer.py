@@ -1,4 +1,5 @@
 import csv
+import logging
 
 import cv2
 import mediapipe as mp
@@ -57,7 +58,8 @@ class PoseEstimator:
                 for idx, file in enumerate(os.listdir(subdir)):
                     if file.endswith('.jpg'):
                         self.annotate_image(os.path.join(subdir, file), idx, pose)
-                break
+
+        logging.info("Successfully created training data")
 
     def annotate_image(self, file, idx, pose):
         BG_COLOR = (192, 192, 192)
@@ -94,8 +96,9 @@ class PoseEstimator:
             results.pose_world_landmarks, self.mp_pose.POSE_CONNECTIONS)
         pose_landmarks = results.pose_landmarks
         print(type(pose_landmarks))
-
-
 posecapture = PoseEstimator()
 folder_path = 'C:\\Project DBs\\Final Research DB\\FinalDB'
 posecapture.capture_from_training_data(folder_path)
+
+
+

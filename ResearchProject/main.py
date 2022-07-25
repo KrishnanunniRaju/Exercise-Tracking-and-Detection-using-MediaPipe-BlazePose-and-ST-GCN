@@ -1,6 +1,5 @@
 from src.ExerciseTracker import ExerciseTracker
 
-
 if __name__ == '__main__':
-    instance=ExerciseTracker()
+    instance=ExerciseTracker(True)
     instance.start()
