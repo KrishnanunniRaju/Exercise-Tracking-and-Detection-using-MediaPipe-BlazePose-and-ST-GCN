@@ -55,9 +55,10 @@ class PoseEstimator:
                 min_detection_confidence=0.5) as pose:
             for folder in os.listdir(db_folder):
                 subdir = os.path.join(db_folder, folder)
-                for idx, file in enumerate(os.listdir(subdir)):
-                    if file.endswith('.jpg'):
-                        self.annotate_image(os.path.join(subdir, file), idx, pose)
+                for folder in enumerate(os.listdir(subdir)):
+                    for idx,file in enumerate(os.listdir(folder)):
+                        if file.endswith('.jpg'):
+                            self.annotate_image(os.path.join(subdir, file), idx, pose)
 
         logging.info("Successfully created training data")
 
