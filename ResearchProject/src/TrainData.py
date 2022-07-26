@@ -1,7 +1,7 @@
 import cv2
 import pandas as pd
 import os
-
+from src.PoseCapturer import PoseEstimator
 class TrainingData:
     def __init__(self, folder_path):
         self.df = None
@@ -30,19 +30,15 @@ class TrainingData:
 
     def generate_frames(self):
         self.read_files()
-        final_folder = f'{self.db_folder}\\FinalDB'
-        for index in range(0, len(self.df)):
-            vidcap = cv2.VideoCapture(self.df.iloc[index][0])
-            success, image = vidcap.read()
-            count = 0
-            os.makedirs(f'{final_folder}\\{self.df.iloc[index][1]}\\{index}')
-            while success:
-                file_name = f'{final_folder}\\{self.df.iloc[index][1]}\\{index}\\frame_{count}.jpg'
-                print(file_name)
-                cv2.imwrite(file_name, image)  # save frame as JPEG file.
-                success, image = vidcap.read()
-                count = count + 1
-                print('Read a new frame: ', success)
-        print(f'The final project database can be found in {final_folder}')
-        self.db_folder=final_folder
+        skeleton_values=[]
+        pose_estimator=PoseEstimator()
+        for idx,row in self.df.iterrows():
+            print(f'Generating training data for {row["Name"]}')
+            result=pose_estimator.capture_from_training_data(row['Name'])
+            skeleton_values.append(result)
+        self.df['Data']=skeleton_values
+        final_file=os.path.join(self.db_folder,'final_data.csv')
+        self.df.to_csv(final_file, sep='\t')
+
+
 

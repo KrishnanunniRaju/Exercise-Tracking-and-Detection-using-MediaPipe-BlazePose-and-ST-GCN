@@ -14,7 +14,3 @@ class ExerciseTracker:
     def trainModel(self):
         training_data=TrainingData('C:\Project DBs\Final Research DB')
         print(training_data.db_folder)
-        posecapture = PoseEstimator()
-        folder_path = 'C:\\Project DBs\\Final Research DB\\FinalDB'
-        posecapture.capture_from_training_data(folder_path)
-
