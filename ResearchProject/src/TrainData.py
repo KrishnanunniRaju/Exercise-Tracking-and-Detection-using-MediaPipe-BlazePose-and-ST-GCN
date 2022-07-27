@@ -35,10 +35,12 @@ class TrainingData:
         for idx,row in self.df.iterrows():
             print(f'Generating training data for {row["Name"]}')
             result=pose_estimator.capture_from_training_data(row['Name'])
+            print(result)
             skeleton_values.append(result)
+            print(result)
         self.df['Data']=skeleton_values
         final_file=os.path.join(self.db_folder,'final_data.csv')
-        self.df.to_csv(final_file, sep='\t')
+        self.df.to_csv(final_file)
 
 
 

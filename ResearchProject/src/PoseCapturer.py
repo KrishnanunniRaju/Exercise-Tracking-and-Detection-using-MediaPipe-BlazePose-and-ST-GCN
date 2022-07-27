@@ -75,3 +75,4 @@ class PoseEstimator:
         pose.close()
         cap.release()
         out.release()
+        return return_val
