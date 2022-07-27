@@ -17,9 +17,10 @@ class ExerciseTracker:
 
     def trainModel(self):
         db_folder='C:\Project DBs\Final Research DB'
-        training_data=TrainingData('C:\Project DBs\Final Research DB')
-        print(training_data.db_folder)
+        #training_data=TrainingData('C:\Project DBs\Final Research DB')
+        #print(training_data.db_folder)
         file=os.path.join(db_folder,"final_data.csv")
         df=pd.read_csv(file)
+        print(len(df))
 
 
