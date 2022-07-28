@@ -1,17 +1,39 @@
+import torch
 import torch.nn as nn
-from torch_geometric.nn import GCN
 import torch.nn.functional as F
 from torch.autograd import Variable
-import torch
+
 from Helpers.tgcn import ConvTemporalGraphical
 from Helpers.Graph import Graph
 
-class STGCN:
+class Model(nn.Module):
+    r"""Spatial temporal graph convolutional networks.
+    Args:
+        in_channels (int): Number of channels in the input data
+        num_class (int): Number of classes for the classification task
+        graph_args (dict): The arguments for building the graph
+        edge_importance_weighting (bool): If ``True``, adds a learnable
+            importance weighting to the edges of the graph
+        **kwargs (optional): Other parameters for graph convolution units
+    Shape:
+        - Input: :math:`(N, in_channels, T_{in}, V_{in}, M_{in})`
+        - Output: :math:`(N, num_class)` where
+            :math:`N` is a batch size,
+            :math:`T_{in}` is a length of input sequence,
+            :math:`V_{in}` is the number of graph nodes,
+            :math:`M_{in}` is the number of instance in a frame.
+    """
+
     def __init__(self, in_channels, num_class, graph_args,
                  edge_importance_weighting, **kwargs):
-        self.spatial_block=GCN()
+        super().__init__()
+
+        # load graph
+        self.graph = Graph(**graph_args)
         A = torch.tensor(self.graph.A, dtype=torch.float32, requires_grad=False)
-        self.register_buffer('A',A)
+        self.register_buffer('A', A)
+
+        # build networks
         spatial_kernel_size = A.size(0)
         temporal_kernel_size = 9
         kernel_size = (temporal_kernel_size, spatial_kernel_size)
@@ -29,13 +51,8 @@ class STGCN:
             st_gcn(256, 256, kernel_size, 1, **kwargs),
             st_gcn(256, 256, kernel_size, 1, **kwargs),
         ))
-        def forward(self,X,A):
-            tmp=self.temporal_block(X)
-            tmp=self.spatial_block(tmp,A)
-            tmp=self.temporal_block(tmp)
-            tmp=self.fc(tmp)
-            return tmp
 
+        # initialize parameters for edge importance weighting
         if edge_importance_weighting:
             self.edge_importance = nn.ParameterList([
                 nn.Parameter(torch.ones(self.A.size()))
@@ -44,7 +61,7 @@ class STGCN:
         else:
             self.edge_importance = [1] * len(self.st_gcn_networks)
 
-            # fcn for prediction
+        # fcn for prediction
         self.fcn = nn.Conv2d(256, num_class, kernel_size=1)
 
     def forward(self, x):
@@ -95,7 +112,6 @@ class STGCN:
         output = x.view(N, M, -1, t, v).permute(0, 2, 3, 4, 1)
 
         return output, feature
-
 
 class st_gcn(nn.Module):
     r"""Applies a spatial temporal graph convolution over an input graph sequence.
