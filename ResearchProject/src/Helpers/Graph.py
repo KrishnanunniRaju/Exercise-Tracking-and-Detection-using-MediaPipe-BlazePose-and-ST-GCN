@@ -9,7 +9,6 @@ class Graph():
                  dilation=1):
         self.max_hop = max_hop
         self.dilation = dilation
-
         self.get_edge(layout)
         self.hop_dis = get_hop_distance(
             self.num_node, self.edge, max_hop=max_hop)
@@ -28,30 +27,12 @@ class Graph():
                              (0, 1), (15, 0), (14, 0), (17, 15), (16, 14)]
             self.edge = self_link + neighbor_link
             self.center = 1
-        if layout == 'ntu-rgb+d':
-            self.num_node = 25
+        elif layout == 'pose':
+            self.num_node = 33
             self_link = [(i, i) for i in range(self.num_node)]
-            neighbor_1base = [(1, 2), (2, 21), (3, 21), (4, 3), (5, 21),
-                              (6, 5), (7, 6), (8, 7), (9, 21), (10, 9),
-                              (11, 10), (12, 11), (13, 1), (14, 13), (15, 14),
-                              (16, 15), (17, 1), (18, 17), (19, 18), (20, 19),
-                              (22, 23), (23, 8), (24, 25), (25, 12)]
-            neighbor_link = [(i - 1, j - 1) for (i, j) in neighbor_1base]
-            self.edge = self_link + neighbor_link
-            self.center = 21 - 1
-        elif layout == 'ntu_edge':
-            self.num_node = 24
-            self_link = [(i, i) for i in range(self.num_node)]
-            neighbor_1base = [(1, 2), (3, 2), (4, 3), (5, 2), (6, 5), (7, 6),
-                              (8, 7), (9, 2), (10, 9), (11, 10), (12, 11),
-                              (13, 1), (14, 13), (15, 14), (16, 15), (17, 1),
-                              (18, 17), (19, 18), (20, 19), (21, 22), (22, 8),
-                              (23, 24), (24, 12)]
-            neighbor_link = [(i - 1, j - 1) for (i, j) in neighbor_1base]
-            self.edge = self_link + neighbor_link
-            self.center = 2
-        # elif layout=='customer settings'
-        #     pass
+            neighbour_link=[(32,30),(32,28),(31,29),(31,27),(30,28),(29,27),(28,26),(27,25),(26,24),(25,23),(24,23),(24,12),(23,11),(22,16),(21,15),(20,18),(20,16),(19,17),(19,15),(18,16),(17,15),(16,14),(15,13),(14,12),(13,11),(12,11),(12,10),(11,9),(10,9),(10,0),(9,0),(8,6),(7,3),(6,5),(5,4),(4,0),(3,2),(2,1),(1,0)]
+            self.edge=self_link+neighbour_link
+            self.center=0
         else:
             raise ValueError("Do Not Exist This Layout.")
 

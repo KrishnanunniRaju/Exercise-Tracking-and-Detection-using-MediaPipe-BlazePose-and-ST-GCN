@@ -1,4 +1,7 @@
+import pickle
+
 import cv2
+import numpy as np
 import pandas as pd
 import os
 from src.PoseCapturer import PoseEstimator
@@ -35,12 +38,14 @@ class TrainingData:
         for idx,row in self.df.iterrows():
             print(f'Generating training data for {row["Name"]}')
             result=pose_estimator.capture_from_training_data(row['Name'])
-            print(result)
             skeleton_values.append(result)
-            print(result)
-        self.df['Data']=skeleton_values
-        final_file=os.path.join(self.db_folder,'final_data.csv')
-        self.df.to_csv(final_file)
+        final_result=np.array(skeleton_values)
+        np.save("C:\Project DBs\Final Research DB\\final_data.npy",final_result)
+        with open('C:\Project DBs\Final Research DB\\final_data_label.pkl', 'wb') as f:
+            final_labels=[]
+            for x in self.df['Label']:
+                final_labels.append(self.df['Label'].unique().index(x))
+            pickle.dump(final_labels, f)
 
 
 

@@ -2,6 +2,9 @@ import cv2
 import mediapipe as mp
 import os
 
+import numpy as np
+
+
 class PoseEstimator:
     def __init__(self):
         self.mp_drawing = mp.solutions.drawing_utils
@@ -51,14 +54,7 @@ class PoseEstimator:
         if not cap.isOpened():
             print("Error opening video stream or file")
 
-        frame_width = int(cap.get(3))
-        frame_height = int(cap.get(4))
 
-        outdir, inputflnm = os.path.dirname(file_path), os.path.basename(file_path)
-        inflnm, inflext = inputflnm.split('.')
-        out_filename = f'{outdir}{inflnm}_annotated.{inflext}'
-        out = cv2.VideoWriter(out_filename, cv2.VideoWriter_fourcc(
-            'M', 'J', 'P', 'G'), 24, (frame_width, frame_height))
         while cap.isOpened():
             ret, image = cap.read()
             if not ret:
@@ -70,9 +66,28 @@ class PoseEstimator:
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             mp_drawing.draw_landmarks(
                 image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
-            out.write(image)
             return_val.append(results.pose_landmarks)
         pose.close()
         cap.release()
-        out.release()
-        return return_val
+        return self.determine(return_val)
+
+    def determine(self,result):
+        results = []
+        for T in range(0, 200):
+            frames = []
+            for V in range(0, 33):
+                nodes = []
+                x = []
+                y = []
+                z = []
+                x.append(result[T].landmark[V].x)
+                y.append(result[T].landmark[V].y)
+                z.append(result[T].landmark[V].z)
+                nodes.append(x)
+                nodes.append(y)
+                nodes.append(z)
+                frames.append(nodes)
+            results.append(frames)
+
+        return np.array(results)
+

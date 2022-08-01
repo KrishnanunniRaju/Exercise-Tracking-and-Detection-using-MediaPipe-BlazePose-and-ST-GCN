@@ -3,6 +3,7 @@ import os
 import pandas as pd
 
 from src.PoseCapturer import PoseEstimator
+from src.STGCN import STGCN
 from src.TrainData import TrainingData
 
 
@@ -17,10 +18,10 @@ class ExerciseTracker:
 
     def trainModel(self):
         db_folder='C:\Project DBs\Final Research DB'
-        #training_data=TrainingData('C:\Project DBs\Final Research DB')
-        #print(training_data.db_folder)
-        file=os.path.join(db_folder,"final_data.csv")
-        df=pd.read_csv(file)
-        print(len(df))
-
+        training_data=TrainingData('C:\Project DBs\Final Research DB')
+        print(training_data.db_folder)
+        self.model = STGCN()
+        for epoch in range(0,100):
+            self.model.train(x="C:\Project DBs\Final Research DB\\final_data.npy",y="C:\Project DBs\Final Research DB\\final_data_label.pkl")
+        self.model.save("C:\Project DBs\Final Research DB\\STGCN.pth")
 

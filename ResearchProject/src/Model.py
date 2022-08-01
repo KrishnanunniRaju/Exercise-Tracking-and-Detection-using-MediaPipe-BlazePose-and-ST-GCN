@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 
-from Helpers.tgcn import ConvTemporalGraphical
-from Helpers.Graph import Graph
+from src.Helpers.Graph import Graph
+from src.Helpers.tgcn import ConvTemporalGraphical
+
 
 class Model(nn.Module):
     r"""Spatial temporal graph convolutional networks.
@@ -24,12 +24,12 @@ class Model(nn.Module):
             :math:`M_{in}` is the number of instance in a frame.
     """
 
-    def __init__(self, in_channels, num_class, graph_args,
+    def __init__(self, in_channels, num_class,
                  edge_importance_weighting, **kwargs):
         super().__init__()
 
         # load graph
-        self.graph = Graph(**graph_args)
+        self.graph = Graph()
         A = torch.tensor(self.graph.A, dtype=torch.float32, requires_grad=False)
         self.register_buffer('A', A)
 
@@ -65,12 +65,11 @@ class Model(nn.Module):
         self.fcn = nn.Conv2d(256, num_class, kernel_size=1)
 
     def forward(self, x):
-
         # data normalization
-        N, C, T, V, M = x.size()
+        N,T, V,C,M = x.shape
         x = x.permute(0, 4, 3, 1, 2).contiguous()
         x = x.view(N * M, V * C, T)
-        x = self.data_bn(x)
+        #x = self.data_bn(x.double())
         x = x.view(N, M, V, C, T)
         x = x.permute(0, 1, 3, 4, 2).contiguous()
         x = x.view(N * M, C, T, V)
@@ -92,15 +91,15 @@ class Model(nn.Module):
     def extract_feature(self, x):
 
         # data normalization
-        N, C, T, V, M = x.size()
-        x = x.permute(0, 4, 3, 1, 2).contiguous()
+        N,T, V,C,M = x.size()
+        x = x.permute(0, 4, 2, 3, 1).contiguous()
         x = x.view(N * M, V * C, T)
         x = self.data_bn(x)
         x = x.view(N, M, V, C, T)
         x = x.permute(0, 1, 3, 4, 2).contiguous()
         x = x.view(N * M, C, T, V)
 
-        # forwad
+        # forward
         for gcn, importance in zip(self.st_gcn_networks, self.edge_importance):
             x, _ = gcn(x, self.A * importance)
 
