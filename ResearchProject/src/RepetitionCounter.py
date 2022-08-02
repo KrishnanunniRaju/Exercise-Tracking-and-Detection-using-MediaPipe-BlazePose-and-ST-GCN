@@ -21,24 +21,6 @@ class RepetitionCounter(object):
         return self._n_repeats
 
     def __call__(self, pose_classification):
-        """Counts number of repetitions happend until given frame.
-
-        We use two thresholds. First you need to go above the higher one to enter
-        the pose, and then you need to go below the lower one to exit it. Difference
-        between the thresholds makes it stable to prediction jittering (which will
-        cause wrong counts in case of having only one threshold).
-
-        Args:
-          pose_classification: Pose classification dictionary on current frame.
-            Sample:
-              {
-                'pushups_down': 8.3,
-                'pushups_up': 1.7,
-              }
-
-        Returns:
-          Integer counter of repetitions.
-        """
         # Get pose confidence.
         pose_confidence = 0.0
         if self._class_name in pose_classification:
