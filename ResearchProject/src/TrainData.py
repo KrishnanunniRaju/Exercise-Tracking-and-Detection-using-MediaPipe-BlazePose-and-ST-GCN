@@ -35,16 +35,17 @@ class TrainingData:
         self.read_files()
         skeleton_values=[]
         pose_estimator=PoseEstimator()
+        final_labels = []
+        labels=self.df['Label'].unique().tolist()
         for idx,row in self.df.iterrows():
             print(f'Generating training data for {row["Name"]}')
             result=pose_estimator.capture_from_training_data(row['Name'])
-            skeleton_values.append(result)
+            if result is not None:
+                skeleton_values.append(result)
+                final_labels.append(labels.index(row['Label']))
         final_result=np.array(skeleton_values)
         np.save("C:\Project DBs\Final Research DB\\final_data.npy",final_result)
         with open('C:\Project DBs\Final Research DB\\final_data_label.pkl', 'wb') as f:
-            final_labels=[]
-            for x in self.df['Label']:
-                final_labels.append(self.df['Label'].unique().index(x))
             pickle.dump(final_labels, f)
 
 

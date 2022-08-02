@@ -46,8 +46,17 @@ class STGCN:
             self.show_iter_info()
             self.meta_info['iter'] += 1
 
+    def predict(self,x):
+        out=self.model.forward(x)
+        print((out == torch.max(out)).nonzero(as_tuple=True)[1].item())
+
+
     def save(self,path):
         torch.save(self.model.state_dict(),path)
+
+    def load(self,path):
+        self.model.load_state_dict(torch.load(path))
+        self.model.eval()
 
     def show_iter_info(self):
             info ='\tIter {} Done.'.format(self.meta_info['iter'])

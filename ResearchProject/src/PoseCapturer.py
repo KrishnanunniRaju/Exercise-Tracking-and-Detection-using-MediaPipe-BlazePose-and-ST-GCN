@@ -3,6 +3,7 @@ import mediapipe as mp
 import os
 
 import numpy as np
+import torch
 
 
 class PoseEstimator:
@@ -11,11 +12,14 @@ class PoseEstimator:
         self.mp_drawing_styles = mp.solutions.drawing_styles
         self.mp_pose = mp.solutions.pose
 
-    def capture(self):
+    def capture(self,model):
         cap = cv2.VideoCapture(0)
+        self.model=model
         with self.mp_pose.Pose(
                 min_detection_confidence=0.5,
                 min_tracking_confidence=0.5) as pose:
+            nodes=[]
+            frame=0
             while cap.isOpened():
                 success, image = cap.read()
                 if not success:
@@ -36,8 +40,15 @@ class PoseEstimator:
                     results.pose_landmarks,
                     self.mp_pose.POSE_CONNECTIONS,
                     landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style())
+                if results.pose_landmarks is not None and results.pose_landmarks:
+                    nodes.append(results.pose_landmarks)
+                if frame==60:
+                    self.model.predict(self.determine_node(nodes))
+                    frame=0
+                    nodes.clear()
                 # Flip the image horizontally for a selfie-view display.
                 cv2.imshow('MediaPipe Pose', cv2.flip(image, 1))
+                frame=frame+1
                 if cv2.waitKey(5) & 0xFF == 27:
                     break
         cap.release()
@@ -71,23 +82,49 @@ class PoseEstimator:
         cap.release()
         return self.determine(return_val)
 
-    def determine(self,result):
-        results = []
-        for T in range(0, 200):
-            frames = []
+    def determine_node(self,results):
+        return_val=[]
+        for result in results:
+            frames=[]
             for V in range(0, 33):
                 nodes = []
                 x = []
                 y = []
                 z = []
-                x.append(result[T].landmark[V].x)
-                y.append(result[T].landmark[V].y)
-                z.append(result[T].landmark[V].z)
+                x.append(result.landmark[V].x)
+                y.append(result.landmark[V].y)
+                z.append(result.landmark[V].z)
                 nodes.append(x)
                 nodes.append(y)
                 nodes.append(z)
                 frames.append(nodes)
-            results.append(frames)
+            return_val.append(frames)
+        return torch.tensor([return_val])
 
-        return np.array(results)
+    def determine(self,result):
+        try:
+            results = []
+            for T in range(0, 200):
+                frames = []
+                for V in range(0, 33):
+                    nodes = []
+                    x = []
+                    y = []
+                    z = []
+                    x.append(result[T].landmark[V].x)
+                    y.append(result[T].landmark[V].y)
+                    z.append(result[T].landmark[V].z)
+                    nodes.append(x)
+                    nodes.append(y)
+                    nodes.append(z)
+                    frames.append(nodes)
+                results.append(frames)
+
+            return np.array(results)
+        except AttributeError:
+            return None
+        except IndexError:
+            return None
+        except Exception:
+            return None
 
