@@ -1,0 +1,5 @@
+mediapipe==0.8.10
+numpy==1.23.0
+opencv_contrib_python==4.6.0.66
+pandas==1.4.3
+torch==1.12.0
