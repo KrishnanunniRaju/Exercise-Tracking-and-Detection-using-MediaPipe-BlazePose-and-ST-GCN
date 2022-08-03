@@ -14,7 +14,7 @@ class ExerciseTracker:
             self.model=self.trainModel()
         else:
             self.model=STGCN()
-            self.model.load("C:\Project DBs\Final Research DB\\STGCN.pth")
+            self.model.load('STGCN.pth')
 
     def start(self):
         print('Started')
