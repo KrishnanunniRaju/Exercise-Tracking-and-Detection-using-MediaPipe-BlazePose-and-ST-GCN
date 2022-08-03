@@ -1,9 +1,11 @@
-FROM ubuntu:20.04
+FROM python:3.10-slim-buster
 
-RUN apt-get update -qq   && apt-get install -y -qq python3.10
-RUN apt-get install -y python3-pip python-dev python3.10-dev && python3.10 -m pip install pip --upgrade
+RUN python -m pip install --upgrade pip
 
-RUN pip3 install --no-cache --upgrade pip setuptools
+RUN pip3 install requests paho-mqtt
+
+RUN apt-get update
+RUN apt-get install ffmpeg libsm6 libxext6  -y
 
 RUN mkdir /ResearchProject
 
