@@ -12,14 +12,14 @@ class PoseEstimator:
         self.mp_drawing_styles = mp.solutions.drawing_styles
         self.mp_pose = mp.solutions.pose
 
-    def capture(self,model):
+    def capture(self, model):
         cap = cv2.VideoCapture(0)
-        self.model=model
+        self.model = model
         with self.mp_pose.Pose(
                 min_detection_confidence=0.5,
                 min_tracking_confidence=0.5) as pose:
-            nodes=[]
-            frame=0
+            nodes = []
+            frame = 0
             while cap.isOpened():
                 success, image = cap.read()
                 if not success:
@@ -40,21 +40,22 @@ class PoseEstimator:
                     results.pose_landmarks,
                     self.mp_pose.POSE_CONNECTIONS,
                     landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style())
+
                 if results.pose_landmarks is not None and results.pose_landmarks:
                     nodes.append(results.pose_landmarks)
-                if frame==60:
+                if frame == 60:
                     self.model.predict(self.determine_node(nodes))
-                    frame=0
+                    frame = 0
                     nodes.clear()
                 # Flip the image horizontally for a selfie-view display.
                 cv2.imshow('MediaPipe Pose', cv2.flip(image, 1))
-                frame=frame+1
+                frame = frame + 1
                 if cv2.waitKey(5) & 0xFF == 27:
                     break
         cap.release()
 
     def capture_from_training_data(self, file_path):
-        return_val=[]
+        return_val = []
         mp_drawing = mp.solutions.drawing_utils
         mp_pose = mp.solutions.pose
 
@@ -64,7 +65,6 @@ class PoseEstimator:
 
         if not cap.isOpened():
             print("Error opening video stream or file")
-
 
         while cap.isOpened():
             ret, image = cap.read()
@@ -82,10 +82,10 @@ class PoseEstimator:
         cap.release()
         return self.determine(return_val)
 
-    def determine_node(self,results):
-        return_val=[]
+    def determine_node(self, results):
+        return_val = []
         for result in results:
-            frames=[]
+            frames = []
             for V in range(0, 33):
                 nodes = []
                 x = []
@@ -101,7 +101,7 @@ class PoseEstimator:
             return_val.append(frames)
         return torch.tensor([return_val])
 
-    def determine(self,result):
+    def determine(self, result):
         try:
             results = []
             for T in range(0, 200):
@@ -127,4 +127,3 @@ class PoseEstimator:
             return None
         except Exception:
             return None
-

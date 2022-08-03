@@ -47,9 +47,11 @@ class STGCN:
             self.meta_info['iter'] += 1
 
     def predict(self,x):
+        label=['armraise', 'bicyclecrunch', 'birddog', 'curl', 'fly', 'legraise', 'overheadpress', 'pushup', 'squat',
+         'superman']
         out=self.model.forward(x)
-        print((out == torch.max(out)).nonzero(as_tuple=True)[1].item())
-
+        result=(out == torch.max(out)).nonzero(as_tuple=True)[1].item()
+        print(label[result])
 
     def save(self,path):
         torch.save(self.model.state_dict(),path)
