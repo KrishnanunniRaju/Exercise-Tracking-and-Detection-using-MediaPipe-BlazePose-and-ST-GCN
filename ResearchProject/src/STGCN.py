@@ -51,7 +51,7 @@ class STGCN:
          'superman']
         out=self.model.forward(x)
         result=(out == torch.max(out)).nonzero(as_tuple=True)[1].item()
-        print(label[result])
+        return label[result]
 
     def save(self,path):
         torch.save(self.model.state_dict(),path)

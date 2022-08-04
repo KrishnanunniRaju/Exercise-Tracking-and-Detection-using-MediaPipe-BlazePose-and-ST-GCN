@@ -1,3 +1,5 @@
+import time
+
 import cv2
 import mediapipe as mp
 import os
@@ -15,6 +17,8 @@ class PoseEstimator:
     def capture(self, model):
         cap = cv2.VideoCapture(0)
         self.model = model
+        workout = 'Test'
+        start=0
         with self.mp_pose.Pose(
                 min_detection_confidence=0.5,
                 min_tracking_confidence=0.5) as pose:
@@ -24,10 +28,8 @@ class PoseEstimator:
                 success, image = cap.read()
                 if not success:
                     print("Ignoring empty camera frame.")
-                    # If loading a video, use 'break' instead of 'continue'.
                     continue
-                # To improve performance, optionally mark the image as not writeable to
-                # pass by reference.
+
                 image.flags.writeable = False
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 results = pose.process(image)
@@ -41,10 +43,22 @@ class PoseEstimator:
                     self.mp_pose.POSE_CONNECTIONS,
                     landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style())
 
-                if results.pose_landmarks is not None and results.pose_landmarks:
-                    nodes.append(results.pose_landmarks)
+                #if not results.pose_landmarks or self.break_out(results):
+                 #   nodes.clear()
+                  #  frame = 0
+                   # print('No person detected or whole body is not visible. Kindly align you body and try again.')
+                    #continue
+                nodes.append(results.pose_landmarks)
                 if frame == 60:
-                    self.model.predict(self.determine_node(nodes))
+                    val = self.model.predict(self.determine_node(nodes))
+                    if workout != val or workout == 'Test':
+                        end = time.time()
+                        workout_time = end - start
+                        start = time.time()
+                        if workout!='Test':
+                            print(f'{workout} done for {workout_time} seconds')
+                        workout = val
+
                     frame = 0
                     nodes.clear()
                 # Flip the image horizontally for a selfie-view display.
@@ -53,6 +67,11 @@ class PoseEstimator:
                 if cv2.waitKey(5) & 0xFF == 27:
                     break
         cap.release()
+
+    def break_out(self, values):
+        for landmark in values.pose_landmarks.landmark:
+            if landmark.visibility < 0.5:
+                return True
 
     def capture_from_training_data(self, file_path):
         return_val = []
