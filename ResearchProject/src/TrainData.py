@@ -1,16 +1,23 @@
 import pickle
+import random
 
 import cv2
 import numpy as np
 import pandas as pd
 import os
 from src.PoseCapturer import PoseEstimator
+
+
 class TrainingData:
     def __init__(self, folder_path):
         self.df = None
         self.db_folder = folder_path
         self.files = []
         self.labels = []
+        self.final_data_file = "C:\Project DBs\Final Research DB\\final_data.npy"
+        self.final_label_path = 'C:\Project DBs\Final Research DB\\final_data_label.pkl'
+        self.test_data_file = "C:\Project DBs\Final Research DB\\test_data.npy"
+        self.test_label_path = 'C:\Project DBs\Final Research DB\\test_data_label.pkl'
         self.CONST_DATAFOLDER_PATH = 'data'
         self.generate_frames()
 
@@ -33,20 +40,30 @@ class TrainingData:
 
     def generate_frames(self):
         self.read_files()
-        skeleton_values=[]
-        pose_estimator=PoseEstimator()
+        skeleton_values = []
+        pose_estimator = PoseEstimator()
         final_labels = []
-        labels=self.df['Label'].unique().tolist()
-        for idx,row in self.df.iterrows():
+        labels = self.df['Label'].unique().tolist()
+        for idx, row in self.df.iterrows():
             print(f'Generating training data for {row["Name"]}')
-            result=pose_estimator.capture_from_training_data(row['Name'])
+            result = pose_estimator.capture_from_training_data(row['Name'])
             if result is not None:
                 skeleton_values.append(result)
                 final_labels.append(labels.index(row['Label']))
-        final_result=np.array(skeleton_values)
-        np.save("C:\Project DBs\Final Research DB\\final_data.npy",final_result)
-        with open('C:\Project DBs\Final Research DB\\final_data_label.pkl', 'wb') as f:
-            pickle.dump(final_labels, f)
+        final_data = [skeleton_values, final_labels]
+        random.shuffle(final_data)
+        training_data_values = np.array(final_data[0][0:899])
+        training_data_labels = final_data[1][0:899]
+        testing_data_values = np.array(final_data[0][900:len(final_data[0])])
+        testing_data_label = final_data[1][900:len(final_data[1])]
 
+        np.save(self.final_data_file, training_data_values)
+        np.save(self.test_data_file, testing_data_values)
 
+        with open(self.final_label_path, 'wb') as f:
+            pickle.dump(training_data_labels, f)
 
+        with open(self.test_label_path, 'wb') as f:
+            pickle.dump(testing_data_label, f)
+
+        self.labels = labels
