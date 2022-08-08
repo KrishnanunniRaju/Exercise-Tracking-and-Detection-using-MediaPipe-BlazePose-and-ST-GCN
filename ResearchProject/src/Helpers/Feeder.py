@@ -38,7 +38,7 @@ class Feeder(torch.utils.data.Dataset):
             self.label = pickle.load(f)
             self.label=torch.tensor(list(self.label))
         self.data = np.load(self.data_path)
-        self.N, self.C, self.T, self.V, self.M = self.data.shape
+        self.N, self.T, self.V,self.C, self.M = self.data.shape
     def __len__(self):
         return len(self.label)
 

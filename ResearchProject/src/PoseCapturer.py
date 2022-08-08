@@ -16,9 +16,12 @@ class PoseEstimator:
 
     def capture(self, model):
         cap = cv2.VideoCapture(0)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        print(fps)
         self.model = model
         workout = 'Test'
         start=0
+        font = cv2.FONT_HERSHEY_SIMPLEX
         with self.mp_pose.Pose(
                 min_detection_confidence=0.5,
                 min_tracking_confidence=0.5) as pose:
@@ -43,14 +46,10 @@ class PoseEstimator:
                     self.mp_pose.POSE_CONNECTIONS,
                     landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style())
 
-                #if not results.pose_landmarks or self.break_out(results):
-                 #   nodes.clear()
-                  #  frame = 0
-                   # print('No person detected or whole body is not visible. Kindly align you body and try again.')
-                    #continue
                 nodes.append(results.pose_landmarks)
-                if frame == 60:
-                    val = self.model.predict(self.determine_node(nodes))
+                if frame == 199:
+                    node_values=self.determine_node(nodes)
+                    val = self.model.predict(node_values)
                     if workout != val or workout == 'Test':
                         end = time.time()
                         workout_time = end - start
@@ -58,7 +57,6 @@ class PoseEstimator:
                         if workout!='Test':
                             print(f'{workout} done for {workout_time} seconds')
                         workout = val
-
                     frame = 0
                     nodes.clear()
                 # Flip the image horizontally for a selfie-view display.
@@ -106,17 +104,10 @@ class PoseEstimator:
         for result in results:
             frames = []
             for V in range(0, 33):
-                nodes = []
-                x = []
-                y = []
-                z = []
-                x.append(result.landmark[V].x)
-                y.append(result.landmark[V].y)
-                z.append(result.landmark[V].z)
-                nodes.append(x)
-                nodes.append(y)
-                nodes.append(z)
-                frames.append(nodes)
+                x = [result.landmark[V].x]
+                y = [result.landmark[V].y]
+                z = [result.landmark[V].z]
+                frames.append([x,y,z])
             return_val.append(frames)
         return torch.tensor([return_val])
 

@@ -5,6 +5,9 @@ import cv2
 import numpy as np
 import pandas as pd
 import os
+
+from sklearn.model_selection import train_test_split
+
 from src.PoseCapturer import PoseEstimator
 
 
@@ -20,7 +23,6 @@ class TrainingData:
         self.test_label_path = 'C:\Project DBs\Final Research DB\\test_data_label.pkl'
         self.CONST_DATAFOLDER_PATH = 'data'
         self.generate_frames()
-
 
     def read_video_files_into_dataframe(self, path):
         parent_path = os.path.abspath(os.path.join(path, os.pardir))
@@ -50,12 +52,14 @@ class TrainingData:
             if result is not None:
                 skeleton_values.append(result)
                 final_labels.append(labels.index(row['Label']))
-        final_data = [skeleton_values, final_labels]
-        random.shuffle(final_data)
-        training_data_values = np.array(final_data[0][0:899])
-        training_data_labels = final_data[1][0:899]
-        testing_data_values = np.array(final_data[0][900:len(final_data[0])])
-        testing_data_label = final_data[1][900:len(final_data[1])]
+        final_data = pd.DataFrame(list(zip(skeleton_values, final_labels)), columns=['Data', 'Label'])
+        final_data = final_data.sample(frac=1)
+        X_train, X_test, y_train, y_test = train_test_split(final_data['Data'], final_data['Label'], test_size=0.2,
+                                                            random_state=42)
+        training_data_values = np.array(list(X_train))
+        training_data_labels = list(y_train)
+        testing_data_values = np.array(list(X_test))
+        testing_data_label = list(y_test)
 
         np.save(self.final_data_file, training_data_values)
         np.save(self.test_data_file, testing_data_values)
