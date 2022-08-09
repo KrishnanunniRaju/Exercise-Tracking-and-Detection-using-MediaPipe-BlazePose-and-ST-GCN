@@ -1,21 +1,17 @@
 import pickle
-
 import numpy as np
-import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import confusion_matrix
-
 from src.Helpers.Feeder import Feeder
 from src.Model import Model
 
 
 class STGCN:
     def __init__(self,optimizer,labels):
-        self.accuracy = 0
         self.loss = nn.CrossEntropyLoss()
-        self.model = Model(in_channels=3, num_class=10, edge_importance_weighting=True)
+        self.model = Model(in_channels=3, num_class=10, edge_importance_weighting=False)
         self.model.apply(weights_init)
         self.load_optimizer(optimizer, 0.01)
         self.dev = 'cpu'
@@ -32,25 +28,44 @@ class STGCN:
     def test(self, x, y, evaluation=True):
         y_pred = []
         y_true = []
-        label = []
+        loss_value=[]
+        label_frag=[]
+        label=[]
+        result_frag=[]
         self.model.eval()
-        with open(y, 'rb') as f:
-            labels = pickle.load(f)
-            label = torch.tensor(labels).long().to(self.dev)
-
-        data = torch.tensor(np.load(x)).float().to(self.dev)
-        # inference
-        with torch.no_grad():
-            output = self.model(data)
-
-        result, correct = self.determine(output, label)
+        dataset = Feeder(data_path=x, label_path=y)
+        loader = torch.utils.data.DataLoader(
+            dataset,
+            batch_size=64,
+            shuffle=False)
+        for data, label in loader:
+            data = data.float().to(self.dev)
+            label = label.long().to(self.dev)
+            # inference
+            with torch.no_grad():
+                output = self.model(data)
+            result_frag.append(output.data.cpu().numpy())
+            result, correct = self.determine(output, label)
         # get loss
+            if evaluation:
+                y_pred.append(result)
+                y_true.append(label)
+                loss = self.loss(output, label)
+                loss_value.append(loss.item())
+                label_frag.append(label.data.cpu().numpy())
+        self.result = np.concatenate(result_frag)
         if evaluation:
-            y_pred.append(result)
-            y_true.append(label)
-        print(f'Number of correct detections:{correct}. Ratio: {correct/len(labels)}')
-        cf_matrix = confusion_matrix(label.detach().cpu().numpy(), np.array(result))
-        print(cf_matrix)
+            for k in [1, 5]:
+                self.show_topk(k)
+            print(f'Number of correct detections:{correct}. Ratio: {correct/len(label)}')
+            cf_matrix = confusion_matrix(label.detach().cpu().numpy(), np.array(result))
+            print(cf_matrix)
+
+    def show_topk(self, k):
+        rank = self.result.argsort()
+        hit_top_k = [l in rank[i, -k:] for i, l in enumerate(self.label)]
+        accuracy = sum(hit_top_k) * 1.0 / len(hit_top_k)
+        print('\tTop{}: {:.2f}%'.format(k, 100 * accuracy))
 
     def train(self, x, y):
         self.model.train()
@@ -60,9 +75,10 @@ class STGCN:
             batch_size=256,
             shuffle=True,
             drop_last=True)
-
-        for epoch in range(0, 100):
+        for epoch in range(0, 10):
             correct = 0
+            loss_value = []
+            accuracy=[]
             for data, label in loader:
                 # forward
 
@@ -73,20 +89,22 @@ class STGCN:
                 loss = self.loss(output, label)
                 _, value = self.determine(output, label)
                 correct += value
-                self.test(x="C:\Project DBs\Final Research DB\\test_data.npy",
-                                y='C:\Project DBs\Final Research DB\\test_data_label.pkl')
                 self.optimizer.zero_grad()
                 # backward
                 loss.backward()
                 self.optimizer.step()
+                loss_value.append(loss.data.item())
 
                 # statistics
                 self.iter_info['loss'] = loss.data.item()
                 self.iter_info['lr'] = '{:.6f}'.format(self.lr)
-                self.accuracy = 100 * correct / len(data)
+                accuracy.append(100 * correct / len(data))
                 self.show_iter_info()
-                print(f'Accuracy: {self.accuracy};[{correct}]')
                 self.meta_info['iter'] += 1
+            print(f'Accuracy from the epoch: {np.mean(accuracy)}%')
+            print(f'Mean loss of the epoch: {np.mean(loss_value)}')
+
+
 
     def determine(self, output, label):
         result = []
