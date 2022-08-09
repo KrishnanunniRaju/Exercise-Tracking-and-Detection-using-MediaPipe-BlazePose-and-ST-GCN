@@ -9,11 +9,11 @@ from src.Helpers.tgcn import ConvTemporalGraphical
 class Model(nn.Module):
 
     def __init__(self, in_channels, num_class,
-                 edge_importance_weighting, **kwargs):
+                 edge_importance_weighting,strategy, **kwargs):
         super().__init__()
 
         # load graph
-        self.graph = Graph()
+        self.graph = Graph(strategy=strategy)
         A = torch.tensor(self.graph.A, dtype=torch.float32, requires_grad=False)
         self.register_buffer('A', A)
 

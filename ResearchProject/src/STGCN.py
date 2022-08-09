@@ -9,9 +9,11 @@ from src.Model import Model
 
 
 class STGCN:
-    def __init__(self,optimizer,labels):
+    def __init__(self,optimizer,labels,strategy,edge_importance=False):
         self.loss = nn.CrossEntropyLoss()
-        self.model = Model(in_channels=3, num_class=10, edge_importance_weighting=False)
+        self.edge_importance=edge_importance
+        self.strategy=strategy
+        self.model = Model(in_channels=3, num_class=10, edge_importance_weighting=self.edge_importance,strategy=self.strategy)
         self.model.apply(weights_init)
         self.load_optimizer(optimizer, 0.01)
         self.dev = 'cpu'
@@ -68,6 +70,7 @@ class STGCN:
         print('\tTop{}: {:.2f}%'.format(k, 100 * accuracy))
 
     def train(self, x, y):
+        print(f'###############  Partitioning Method: {self.strategy} ###############\n###############  Learnable Edge Importance: {self.edge_importance} ###############')
         self.model.train()
         dataset = Feeder(data_path=x, label_path=y)
         loader = torch.utils.data.DataLoader(
@@ -75,7 +78,7 @@ class STGCN:
             batch_size=256,
             shuffle=True,
             drop_last=True)
-        for epoch in range(0, 10):
+        for epoch in range(0, 100):
             correct = 0
             loss_value = []
             accuracy=[]
