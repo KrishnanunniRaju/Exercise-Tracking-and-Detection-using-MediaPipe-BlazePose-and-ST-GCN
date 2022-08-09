@@ -4,7 +4,7 @@ class Graph():
 
     def __init__(self,
                  layout='pose',
-                 strategy='uniform',
+                 strategy='spatial',
                  max_hop=1,
                  dilation=1):
         self.max_hop = max_hop
@@ -18,23 +18,14 @@ class Graph():
         return self.A
 
     def get_edge(self, layout):
-        if layout == 'openpose':
-            self.num_node = 18
-            self_link = [(i, i) for i in range(self.num_node)]
-            neighbor_link = [(4, 3), (3, 2), (7, 6), (6, 5), (13, 12), (12,
-                                                                        11),
-                             (10, 9), (9, 8), (11, 5), (8, 2), (5, 1), (2, 1),
-                             (0, 1), (15, 0), (14, 0), (17, 15), (16, 14)]
-            self.edge = self_link + neighbor_link
-            self.center = 1
-        elif layout == 'pose':
+        if layout == 'pose':
             self.num_node = 33
             self_link = [(i, i) for i in range(self.num_node)]
             neighbour_link=[(32,30),(32,28),(31,29),(31,27),(30,28),(29,27),(28,26),(27,25),(26,24),(25,23),(24,23),(24,12),(23,11),(22,16),(21,15),(20,18),(20,16),(19,17),(19,15),(18,16),(17,15),(16,14),(15,13),(14,12),(13,11),(12,11),(12,10),(11,9),(10,9),(10,0),(9,0),(8,6),(7,3),(6,5),(5,4),(4,0),(3,2),(2,1),(1,0)]
             self.edge=self_link+neighbour_link
             self.center=0
         else:
-            raise ValueError("Do Not Exist This Layout.")
+            raise ValueError("This Layout does not exist.")
 
     def get_adjacency(self, strategy):
         valid_hop = range(0, self.max_hop + 1, self.dilation)

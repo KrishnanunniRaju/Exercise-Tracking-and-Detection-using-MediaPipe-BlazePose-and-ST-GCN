@@ -22,7 +22,11 @@ class TrainingData:
         self.test_data_file = "C:\Project DBs\Final Research DB\\test_data.npy"
         self.test_label_path = 'C:\Project DBs\Final Research DB\\test_data_label.pkl'
         self.CONST_DATAFOLDER_PATH = 'data'
-        self.generate_frames()
+        if os.path.isfile(self.final_label_path) and os.path.isfile(self.final_label_path) and os.path.isfile(self.test_label_path) and os.path.isfile(self.test_data_file):
+            self.read_files()
+            self.labels=self.df['Label'].unique().tolist()
+        else:
+            self.generate_frames()
 
     def read_video_files_into_dataframe(self, path):
         parent_path = os.path.abspath(os.path.join(path, os.pardir))

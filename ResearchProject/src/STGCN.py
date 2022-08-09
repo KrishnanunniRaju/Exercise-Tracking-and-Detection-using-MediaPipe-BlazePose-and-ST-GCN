@@ -15,8 +15,8 @@ class STGCN:
     def __init__(self,optimizer,labels):
         self.accuracy = 0
         self.loss = nn.CrossEntropyLoss()
-        self.model = Model(in_channels=3, num_class=10, edge_importance_weighting=False)
-        #self.model.apply(weights_init)
+        self.model = Model(in_channels=3, num_class=10, edge_importance_weighting=True)
+        self.model.apply(weights_init)
         self.load_optimizer(optimizer, 0.01)
         self.dev = 'cpu'
         self.init_environment()
@@ -73,6 +73,8 @@ class STGCN:
                 loss = self.loss(output, label)
                 _, value = self.determine(output, label)
                 correct += value
+                self.test(x="C:\Project DBs\Final Research DB\\test_data.npy",
+                                y='C:\Project DBs\Final Research DB\\test_data_label.pkl')
                 self.optimizer.zero_grad()
                 # backward
                 loss.backward()
