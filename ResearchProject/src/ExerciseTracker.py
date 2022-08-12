@@ -19,14 +19,14 @@ class ExerciseTracker:
                 labels=pickle.load(f)
                 self.model = STGCN('Adam',list(labels),strategy=strategy)
             self.model.load(f'C:\Project DBs\Final Research DB\\Final_Model_{strategy}_{edge_importance}.pth',f'C:\Project DBs\Final Research DB\\Final_Model_{strategy}_{edge_importance}_Label.pkl')
-            self.test_model()
+
     def start(self):
         print('Initializing Exercise tracker...\nGenerating data and training the model.')
 
     def trainModel(self, generate=True):
         if generate:
-            strategy=['uniform']#['spatial','uniform']
-            edge_importance=[True]
+            strategy=['uniform','spatial']
+            edge_importance=[True,False]
             training_data=TrainingData('C:\Project DBs\Final Research DB')
             for strat in strategy:
                 for ei in edge_importance:
