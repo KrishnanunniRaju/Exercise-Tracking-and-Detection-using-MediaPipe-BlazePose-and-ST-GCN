@@ -38,12 +38,6 @@ class Graph():
             A = np.zeros((1, self.num_node, self.num_node))
             A[0] = normalize_adjacency
             self.A = A
-        elif strategy == 'distance':
-            A = np.zeros((len(valid_hop), self.num_node, self.num_node))
-            for i, hop in enumerate(valid_hop):
-                A[i][self.hop_dis == hop] = normalize_adjacency[self.hop_dis ==
-                                                                hop]
-            self.A = A
         elif strategy == 'spatial':
             A = []
             for hop in valid_hop:

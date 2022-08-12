@@ -9,7 +9,7 @@ from src.Model import Model
 
 
 class STGCN:
-    def __init__(self,optimizer,labels,strategy,edge_importance=False):
+    def __init__(self,optimizer,labels,strategy,edge_importance=True):
         self.loss = nn.CrossEntropyLoss()
         self.edge_importance=edge_importance
         self.strategy=strategy
@@ -50,17 +50,19 @@ class STGCN:
             result, correct = self.determine(output, label)
         # get loss
             if evaluation:
-                y_pred.append(result)
-                y_true.append(label)
+                y_pred.extend(result)
+                y_true.extend(label.data.cpu().numpy())
                 loss = self.loss(output, label)
                 loss_value.append(loss.item())
                 label_frag.append(label.data.cpu().numpy())
         self.result = np.concatenate(result_frag)
+        self.label = np.concatenate(label_frag)
         if evaluation:
             for k in [1, 5]:
                 self.show_topk(k)
             print(f'Number of correct detections:{correct}. Ratio: {correct/len(label)}')
-            cf_matrix = confusion_matrix(label.detach().cpu().numpy(), np.array(result))
+            print(f'Mean loss of test data: {np.mean(loss_value)}')
+            cf_matrix = confusion_matrix(y_true=y_true, y_pred=y_pred)
             print(cf_matrix)
 
     def show_topk(self, k):
@@ -132,7 +134,7 @@ class STGCN:
             pickle.dump(self.label, f)
 
     def load(self, path,labels_path):
-        self.model.load_state_dict(torch.load(path))
+        self.model.load_state_dict(torch.load(path),strict=False)
         with open(labels_path, 'rb') as f:
             self.label = pickle.load(f)
         self.model.eval()

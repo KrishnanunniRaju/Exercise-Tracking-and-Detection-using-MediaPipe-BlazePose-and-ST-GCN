@@ -9,30 +9,30 @@ from src.TrainData import TrainingData
 
 
 class ExerciseTracker:
-    def __init__(self, train=False,strategy='spatial',edge_importance=False):
+    def __init__(self, train=False,strategy='spatial',edge_importance=True):
         print('Initialized')
         if train:
             self.start()
             self.model = self.trainModel()
         else:
-            with open(f'C:\Project DBs\Final Research DB\\Final_Model_{strategy}_Label.pkl','r') as f:
+            with open(f'C:\Project DBs\Final Research DB\\Final_Model_{strategy}_{edge_importance}_Label.pkl','rb') as f:
                 labels=pickle.load(f)
-                self.model = STGCN('Adam',list(labels),strategy={strategy})
+                self.model = STGCN('Adam',list(labels),strategy=strategy)
             self.model.load(f'C:\Project DBs\Final Research DB\\Final_Model_{strategy}_{edge_importance}.pth',f'C:\Project DBs\Final Research DB\\Final_Model_{strategy}_{edge_importance}_Label.pkl')
-
+            self.test_model()
     def start(self):
         print('Initializing Exercise tracker...\nGenerating data and training the model.')
 
     def trainModel(self, generate=True):
         if generate:
-            strategy=['spatial','uniform','distance']
-            edge_importance=[True,False]
+            strategy=['uniform']#['spatial','uniform']
+            edge_importance=[True]
             training_data=TrainingData('C:\Project DBs\Final Research DB')
             for strat in strategy:
                 for ei in edge_importance:
                     self.model = STGCN('Adam',training_data.labels,strategy=strat,edge_importance=ei)
                     self.model.train(x="C:\Project DBs\Final Research DB\\final_data.npy",y='C:\Project DBs\Final Research DB\\final_data_label.pkl')
-                    self.model.save(f'C:\Project DBs\Final Research DB\\Final_Model_{strat}_{ei}.pth',f'C:\Project DBs\Final Research DB\\Final_Model_{strat}_{ei}Label.pkl')
+                    self.model.save(f'C:\Project DBs\Final Research DB\\Final_Model_{strat}_{ei}.pth',f'C:\Project DBs\Final Research DB\\Final_Model_{strat}_{ei}_Label.pkl')
                     self.test_model()
 
     def test_model(self):
