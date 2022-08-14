@@ -15,9 +15,11 @@ class PoseEstimator:
         self.mp_pose = mp.solutions.pose
 
     def capture(self, model):
-        cap = cv2.VideoCapture(0)
+
+        cap=cv2.VideoCapture(0)
         fps = cap.get(cv2.CAP_PROP_FPS)
         print(fps)
+
         self.model = model
         workout = 'Test'
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -37,7 +39,7 @@ class PoseEstimator:
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 results = pose.process(image)
 
-                # Draw the pose annotation on the image.
+
                 image.flags.writeable = True
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
                 self.mp_drawing.draw_landmarks(
@@ -45,6 +47,7 @@ class PoseEstimator:
                     results.pose_landmarks,
                     self.mp_pose.POSE_CONNECTIONS,
                     landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style())
+
 
                 nodes.append(results.pose_landmarks)
 
@@ -68,6 +71,7 @@ class PoseEstimator:
                 (0, 255, 255),
                 1,
                 cv2.LINE_4)
+
 
                 cv2.imshow('MediaPipe Pose', image)
                 frame = frame + 1
